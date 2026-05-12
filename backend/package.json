@@ -1,0 +1,23 @@
+{
+  "name": "blood_donation_app",
+  "version": "1.0.0",
+  "description": "Blood donation backend API",
+  "main": "server.js",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "frontend": "npm --prefix frontend start",
+    "frontend:install": "npm install --prefix frontend"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mongoose": "^9.6.2"
+  }
+}
