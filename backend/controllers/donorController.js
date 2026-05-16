@@ -31,7 +31,7 @@ exports.updateDonor = async (req, res) =>{
 exports.deleteDonor = async(req, res) =>{
     try{
         await Donor.findByIdAndDelete(req.params.id);
-        res.status(500).json({ message: "Donor deleted successfully!" });
+        res.status(200).json({ message: "Donor deleted successfully!" });
     }catch (error){
         res.status(500).json({error: error.message });
     }
