@@ -13,7 +13,9 @@ import {
   Users,
   Activity,
   Heart,
-  Search
+  Search,
+  Shield,
+  Trash2
 } from "lucide-react";
 import "./App.css";
 
@@ -35,6 +37,7 @@ export default function App() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [adminMode, setAdminMode] = useState(false);
 
   const [form, setForm] = useState({
     name: "",
@@ -154,6 +157,20 @@ export default function App() {
       );
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function handleDeleteDonor(id) {
+    if (!window.confirm("Are you sure you want to remove this donor? This action cannot be undone.")) return;
+    
+    try {
+      await axios.delete(`${API_BASE_URL}/api/donors/${id}`);
+      setDonors(prev => prev.filter(d => d._id !== id));
+      setSuccess("Donor removed successfully.");
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (e) {
+      setError(e?.response?.data?.message || "Failed to delete donor.");
+      setTimeout(() => setError(""), 3000);
     }
   }
 
@@ -345,6 +362,17 @@ export default function App() {
               <option value="All">All Blood Types</option>
               {BLOOD_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
             </select>
+            
+            <div 
+              className={`admin-toggle ${adminMode ? 'active' : ''}`}
+              onClick={() => setAdminMode(!adminMode)}
+            >
+              <Shield size={16} color={adminMode ? "var(--primary)" : "var(--text-dim)"} />
+              <span style={{ fontSize: '0.875rem', fontWeight: 600, color: adminMode ? 'var(--primary)' : 'var(--text-muted)' }}>
+                Admin Mode
+              </span>
+              <div className="toggle-switch"></div>
+            </div>
           </div>
 
           <div className="table-container">
@@ -378,6 +406,7 @@ export default function App() {
                     <th>Contact</th>
                     <th>Location</th>
                     <th>District</th>
+                    {adminMode && <th>Actions</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -413,6 +442,17 @@ export default function App() {
                             {donor.district || "N/A"}
                           </div>
                         </td>
+                        {adminMode && (
+                          <td>
+                            <button 
+                              className="btn-delete"
+                              onClick={() => handleDeleteDonor(donor._id)}
+                            >
+                              <Trash2 size={14} />
+                              Delete
+                            </button>
+                          </td>
+                        )}
                       </motion.tr>
                     ))}
                   </AnimatePresence>
