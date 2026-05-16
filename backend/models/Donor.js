@@ -5,6 +5,7 @@ const donorSchema = new mongoose.Schema({
     bloodType: { type: String, required: true },
     address: { type: String, required: true },
     telephone: { type: String, required: true }, 
+    idNumber: { type: String, required: true },
     district: { type: String, required: true }
 });
 

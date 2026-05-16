@@ -14,7 +14,10 @@ import {
   Activity,
   Heart,
   Shield,
-  Trash2
+  Trash2,
+  Edit2,
+  X,
+  Fingerprint
 } from "lucide-react";
 import "./App.css";
 
@@ -37,6 +40,8 @@ export default function App() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [adminMode, setAdminMode] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editDonorId, setEditDonorId] = useState(null);
 
   const [form, setForm] = useState({
     name: "",
@@ -44,6 +49,7 @@ export default function App() {
     address: "",
     telephone: "",
     district: "",
+    idNumber: "",
   });
 
   const [filterDistrict, setFilterDistrict] = useState("");
@@ -84,7 +90,8 @@ export default function App() {
       form.bloodType &&
       form.address.trim() &&
       form.telephone.trim() &&
-      form.district
+      form.district &&
+      form.idNumber.trim()
     );
   }, [form]);
 
@@ -118,6 +125,49 @@ export default function App() {
     fetchDonors();
   }, []);
 
+
+
+  async function handleEditClick(donor) {
+    const idCheck = prompt("Enter your Registered National ID (NIC) Number to verify identity:");
+    if (!idCheck) return; // user cancelled/empty
+
+    // Safely convert both fields to String, remove any leading/trailing spaces, and compare
+    const savedID = String(donor.idNumber || "").trim();
+    const enteredID = String(idCheck).trim();
+    
+    if (enteredID === savedID && savedID !== "") {
+      setIsEditing(true);
+      setEditDonorId(donor._id);
+      setForm({
+        name: donor.name,
+        bloodType: donor.bloodType,
+        address: donor.address,
+        telephone: donor.telephone,
+        district: donor.district,
+        idNumber: donor.idNumber
+      });
+      setTouched({});
+      alert("Access Granted. You can now update your details.");
+      document.getElementById('register').scrollIntoView({ behavior: 'smooth' });
+    } else {
+      alert("Access Denied! Incorrect ID Number. You can only edit your own record.");
+    }
+  }
+
+  function cancelEdit() {
+    setIsEditing(false);
+    setEditDonorId(null);
+    setForm({
+      name: "",
+      bloodType: "",
+      address: "",
+      telephone: "",
+      district: "",
+      idNumber: "",
+    });
+    setTouched({});
+  }
+
   async function onSubmit(e) {
     e.preventDefault();
     setSubmitting(true);
@@ -129,21 +179,33 @@ export default function App() {
       bloodType: form.bloodType,
       address: form.address.trim(),
       telephone: form.telephone.trim(),
-      district: form.district
+      district: form.district,
+      idNumber: form.idNumber.trim()
     };
 
     try {
-      await axios.post(`${API_BASE_URL}/api/donors/register`, payload, {
-        headers: { "Content-Type": "application/json" },
-      });
-      setSuccess("Donor registered successfully! Thank you for your contribution.");
+      if (isEditing) {
+        await axios.put(`${API_BASE_URL}/api/donors/${editDonorId}`, payload, {
+          headers: { "Content-Type": "application/json" },
+        });
+        setSuccess("Donor details updated successfully!");
+      } else {
+        await axios.post(`${API_BASE_URL}/api/donors/register`, payload, {
+          headers: { "Content-Type": "application/json" },
+        });
+        setSuccess("Donor registered successfully! Thank you for your contribution.");
+      }
+
       setForm({
         name: "",
         bloodType: "",
         address: "",
         telephone: "",
         district: "",
+        idNumber: "",
       });
+      setIsEditing(false);
+      setEditDonorId(null);
       setTouched({});
       setTimeout(() => setSuccess(""), 5000);
       await fetchDonors();
@@ -230,8 +292,8 @@ export default function App() {
       <main className="content-grid">
         <aside className="glass-card" id="register">
           <div className="card-header">
-            <h2 className="card-title">Register as a Donor</h2>
-            <p className="card-subtitle">Your information could save a life.</p>
+            <h2 className="card-title">{isEditing ? "Update Donor Details" : "Register as a Donor"}</h2>
+            <p className="card-subtitle">{isEditing ? "Modifying existing donor information." : "Your information could save a life."}</p>
           </div>
           
           <div className="form-container">
@@ -288,6 +350,20 @@ export default function App() {
               </div>
 
               <div className="form-group">
+                <label className="form-label">National ID (NIC) Number</label>
+                <div className="input-wrapper">
+                  <Fingerprint className="input-icon" size={18} />
+                  <input 
+                    className={`form-input ${isFieldInvalid('idNumber') ? 'border-error' : ''}`} 
+                    placeholder="e.g. 19XXXXXXXXXX or XXXXXXXXXV"
+                    value={form.idNumber}
+                    onChange={(e) => setForm({...form, idNumber: e.target.value})}
+                    onBlur={() => handleBlur('idNumber')}
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
                 <label className="form-label">District</label>
                 <div className="input-wrapper">
                   <MapPin className="input-icon" size={18} />
@@ -338,10 +414,22 @@ export default function App() {
                 ) : (
                   <>
                     <Heart size={20} fill="currentColor" />
-                    Register Now
+                    {isEditing ? "Update Details" : "Register Now"}
                   </>
                 )}
               </button>
+              
+              {isEditing && (
+                <button 
+                  type="button" 
+                  className="btn-cancel"
+                  onClick={cancelEdit}
+                  disabled={submitting}
+                >
+                  <X size={20} />
+                  Cancel
+                </button>
+              )}
             </form>
           </div>
         </aside>
@@ -423,7 +511,7 @@ export default function App() {
                     <th>Contact</th>
                     <th>Location</th>
                     <th>District</th>
-                    {adminMode && <th>Actions</th>}
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -459,17 +547,26 @@ export default function App() {
                             {donor.district || "N/A"}
                           </div>
                         </td>
-                        {adminMode && (
-                          <td>
+                        <td>
+                          <div className="action-buttons">
                             <button 
-                              className="btn-delete"
-                              onClick={() => handleDeleteDonor(donor._id)}
+                              className="btn-edit"
+                              onClick={() => handleEditClick(donor)}
                             >
-                              <Trash2 size={14} />
-                              Delete
+                              <Edit2 size={14} />
+                              Edit
                             </button>
-                          </td>
-                        )}
+                            {adminMode && (
+                              <button 
+                                className="btn-delete"
+                                onClick={() => handleDeleteDonor(donor._id)}
+                              >
+                                <Trash2 size={14} />
+                                Delete
+                              </button>
+                            )}
+                          </div>
+                        </td>
                       </motion.tr>
                     ))}
                   </AnimatePresence>
