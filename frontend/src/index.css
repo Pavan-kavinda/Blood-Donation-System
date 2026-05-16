@@ -1,24 +1,24 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap');
 
 :root {
-  --primary: #ef4444;
-  --primary-hover: #dc2626;
-  --secondary: #0f172a;
+  --primary: #dc2626; /* Crimson Red */
+  --primary-hover: #b91c1c;
+  --secondary: #64748b;
   --accent: #f43f5e;
-  --success: #10b981;
-  --warning: #f59e0b;
-  --error: #ef4444;
+  --success: #059669;
+  --warning: #d97706;
+  --error: #dc2626;
   
-  --bg-main: #020617;
-  --bg-card: rgba(15, 23, 42, 0.6);
-  --bg-card-hover: rgba(30, 41, 59, 0.8);
+  --bg-main: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f1f5f9;
   
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --text-dim: #64748b;
+  --text-main: #0f172a;
+  --text-muted: #475569;
+  --text-dim: #94a3b8;
   
-  --border: rgba(255, 255, 255, 0.08);
-  --border-hover: rgba(255, 255, 255, 0.15);
+  --border: #e2e8f0;
+  --border-hover: #cbd5e1;
   
   --radius-sm: 8px;
   --radius-md: 12px;

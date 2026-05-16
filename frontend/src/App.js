@@ -6,25 +6,21 @@ import {
   MapPin, 
   Phone, 
   User, 
-  Send, 
   RefreshCcw, 
   AlertCircle, 
   CheckCircle2, 
   Database,
   Users,
   Activity,
-  Heart
+  Heart,
+  Search
 } from "lucide-react";
 import "./App.css";
 
 const API_BASE_URL = "http://localhost:5000";
 const BLOOD_TYPES = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
-function toNumberOrEmpty(value) {
-  if (value === "" || value === null || value === undefined) return "";
-  const n = Number(value);
-  return Number.isFinite(n) ? n : "";
-}
+
 
 export default function App() {
   const [donors, setDonors] = useState([]);
@@ -42,6 +38,10 @@ export default function App() {
     longitude: "",
   });
 
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterBloodType, setFilterBloodType] = useState("All");
+  const [touched, setTouched] = useState({});
+
   const stats = useMemo(() => {
     const totalDonors = donors.length;
     const typesCount = BLOOD_TYPES.reduce((acc, type) => {
@@ -58,9 +58,17 @@ export default function App() {
       total: totalDonors,
       rarest: rarestType,
       recent: donors.slice(0, 5).length,
-      locations: new Set(donors.map(d => d.address.split(',').pop().trim())).size
+      locations: new Set(donors.map(d => d.address ? d.address.split(',').pop().trim() : "Unknown")).size
     };
   }, [donors]);
+
+  const filteredDonors = useMemo(() => {
+    return donors.filter(donor => {
+      const matchesSearch = donor.name?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesType = filterBloodType === "All" || donor.bloodType === filterBloodType;
+      return matchesSearch && matchesType;
+    });
+  }, [donors, searchTerm, filterBloodType]);
 
   const canSubmit = useMemo(() => {
     const lat = Number(form.latitude);
@@ -74,6 +82,16 @@ export default function App() {
       Number.isFinite(lng)
     );
   }, [form]);
+
+  const handleBlur = (field) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+  };
+
+  const isFieldInvalid = (field) => {
+    if (!touched[field]) return false;
+    if (field === 'latitude' || field === 'longitude') return !Number.isFinite(Number(form[field]));
+    return !form[field]?.trim();
+  };
 
   async function fetchDonors() {
     setLoading(true);
@@ -129,6 +147,7 @@ export default function App() {
         latitude: "",
         longitude: "",
       });
+      setTouched({});
       setTimeout(() => setSuccess(""), 5000);
       await fetchDonors();
     } catch (e) {
@@ -148,7 +167,7 @@ export default function App() {
       <nav className="navbar">
         <div className="nav-brand">
           <Droplet className="icon-primary" size={32} fill="currentColor" />
-          <span>LifeStream</span>
+          <span>Life to Life</span>
         </div>
         <div className="nav-links">
           <a href="#donors" className="nav-link active">Directory</a>
@@ -195,10 +214,11 @@ export default function App() {
                 <div className="input-wrapper">
                   <User className="input-icon" size={18} />
                   <input 
-                    className="form-input" 
+                    className={`form-input ${isFieldInvalid('name') ? 'border-error' : ''}`} 
                     placeholder="e.g. Kasun Perera"
                     value={form.name}
                     onChange={(e) => setForm({...form, name: e.target.value})}
+                    onBlur={() => handleBlur('name')}
                   />
                 </div>
               </div>
@@ -207,9 +227,10 @@ export default function App() {
                 <div className="form-group">
                   <label className="form-label">Blood Type</label>
                   <select 
-                    className="form-input"
+                    className={`form-input ${isFieldInvalid('bloodType') ? 'border-error' : ''}`}
                     value={form.bloodType}
                     onChange={(e) => setForm({...form, bloodType: e.target.value})}
+                    onBlur={() => handleBlur('bloodType')}
                   >
                     <option value="">Select Type</option>
                     {BLOOD_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
@@ -218,10 +239,11 @@ export default function App() {
                 <div className="form-group">
                   <label className="form-label">Telephone</label>
                   <input 
-                    className="form-input" 
+                    className={`form-input ${isFieldInvalid('telephone') ? 'border-error' : ''}`} 
                     placeholder="+94 7X XXX XXXX"
                     value={form.telephone}
                     onChange={(e) => setForm({...form, telephone: e.target.value})}
+                    onBlur={() => handleBlur('telephone')}
                   />
                 </div>
               </div>
@@ -229,11 +251,12 @@ export default function App() {
               <div className="form-group">
                 <label className="form-label">Address</label>
                 <textarea 
-                  className="form-input" 
+                  className={`form-input ${isFieldInvalid('address') ? 'border-error' : ''}`} 
                   rows="3" 
                   placeholder="Street, City, District"
                   value={form.address}
                   onChange={(e) => setForm({...form, address: e.target.value})}
+                  onBlur={() => handleBlur('address')}
                 ></textarea>
               </div>
 
@@ -241,19 +264,21 @@ export default function App() {
                 <div className="form-group">
                   <label className="form-label">Latitude</label>
                   <input 
-                    className="form-input" 
+                    className={`form-input ${isFieldInvalid('latitude') ? 'border-error' : ''}`} 
                     placeholder="6.9271"
                     value={form.latitude}
                     onChange={(e) => setForm({...form, latitude: e.target.value})}
+                    onBlur={() => handleBlur('latitude')}
                   />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Longitude</label>
                   <input 
-                    className="form-input" 
+                    className={`form-input ${isFieldInvalid('longitude') ? 'border-error' : ''}`} 
                     placeholder="79.8612"
                     value={form.longitude}
                     onChange={(e) => setForm({...form, longitude: e.target.value})}
+                    onBlur={() => handleBlur('longitude')}
                   />
                 </div>
               </div>
@@ -309,15 +334,36 @@ export default function App() {
             </div>
             <div className="badge-outline">
               <Database size={14} />
-              {donors.length} Total
+              {filteredDonors.length} {filteredDonors.length === donors.length ? "Total" : "Found"}
             </div>
+          </div>
+
+          <div className="search-container">
+            <div className="search-input-group">
+              <Search className="search-icon" size={18} />
+              <input 
+                type="text" 
+                className="search-input" 
+                placeholder="Search donors by name..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <select 
+              className="filter-select"
+              value={filterBloodType}
+              onChange={(e) => setFilterBloodType(e.target.value)}
+            >
+              <option value="All">All Blood Types</option>
+              {BLOOD_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
           </div>
 
           <div className="table-container">
             {loading ? (
               <div className="loading-state">
                 <div className="spinner"></div>
-                <p>Syncing with LifeStream Database...</p>
+                <p>Syncing with Life to Life Database...</p>
               </div>
             ) : donors.length === 0 ? (
               <div className="empty-state">
@@ -325,6 +371,14 @@ export default function App() {
                 <p>No donors registered yet.</p>
                 <button className="btn-link" onClick={() => document.getElementById('register').scrollIntoView({behavior: 'smooth'})}>
                   Be the first donor
+                </button>
+              </div>
+            ) : filteredDonors.length === 0 ? (
+              <div className="empty-state">
+                <Search size={48} className="icon-dim" />
+                <p>No donors found matching "{searchTerm}" {filterBloodType !== "All" ? `with blood type ${filterBloodType}` : ""}.</p>
+                <button className="btn-link" onClick={() => { setSearchTerm(""); setFilterBloodType("All"); }}>
+                  Clear all filters
                 </button>
               </div>
             ) : (
@@ -339,37 +393,43 @@ export default function App() {
                   </tr>
                 </thead>
                 <tbody>
-                  {donors.map((donor, idx) => (
-                    <motion.tr 
-                      key={donor._id || idx}
-                      className="donor-row"
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: idx * 0.05 }}
-                    >
-                      <td>
-                        <div className="donor-name">
-                          <div className="avatar-mini">{donor.name?.charAt(0)}</div>
-                          {donor.name}
-                        </div>
-                      </td>
-                      <td>
-                        <span className="blood-tag">{donor.bloodType}</span>
-                      </td>
-                      <td>
-                        <a href={`tel:${donor.telephone}`} className="phone-link">
-                          <Phone size={14} />
-                          {donor.telephone}
-                        </a>
-                      </td>
-                      <td className="text-muted">{donor.address}</td>
-                      <td>
-                        <div className="coord-tag">
-                          {donor.location?.coordinates[1]?.toFixed(4)}, {donor.location?.coordinates[0]?.toFixed(4)}
-                        </div>
-                      </td>
-                    </motion.tr>
-                  ))}
+                  <AnimatePresence mode="popLayout">
+                    {filteredDonors.map((donor, idx) => (
+                      <motion.tr 
+                        key={donor._id || idx}
+                        className="donor-row"
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        transition={{ duration: 0.2 }}
+                        layout
+                      >
+                        <td>
+                          <div className="donor-name">
+                            <div className="avatar-mini">{donor.name?.charAt(0)}</div>
+                            {donor.name}
+                          </div>
+                        </td>
+                        <td>
+                          <span className="blood-tag">{donor.bloodType}</span>
+                        </td>
+                        <td>
+                          <a href={`tel:${donor.telephone}`} className="phone-link">
+                            <Phone size={14} />
+                            {donor.telephone}
+                          </a>
+                        </td>
+                        <td className="text-muted">{donor.address}</td>
+                        <td>
+                          <div className="coord-tag">
+                            {donor.location && donor.location.coordinates ? (
+                              `Lat: ${donor.location.coordinates[1]?.toFixed(4)}, Lng: ${donor.location.coordinates[0]?.toFixed(4)}`
+                            ) : "N/A"}
+                          </div>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </AnimatePresence>
                 </tbody>
               </table>
             )}
@@ -381,9 +441,9 @@ export default function App() {
         <div className="footer-content">
           <div className="footer-brand">
             <Droplet size={20} fill="currentColor" />
-            LifeStream
+            Life to Life
           </div>
-          <p>© 2026 LifeStream Management System. Built with Love for Humanity.</p>
+          <p>© 2026 Life to Life Management System. Built with Love for Humanity.</p>
         </div>
       </footer>
     </div>
