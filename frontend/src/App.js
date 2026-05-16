@@ -13,7 +13,6 @@ import {
   Users,
   Activity,
   Heart,
-  Search,
   Shield,
   Trash2
 } from "lucide-react";
@@ -47,7 +46,7 @@ export default function App() {
     district: "",
   });
 
-  const [searchTerm, setSearchTerm] = useState("");
+  const [filterDistrict, setFilterDistrict] = useState("");
   const [filterBloodType, setFilterBloodType] = useState("All");
   const [touched, setTouched] = useState({});
 
@@ -73,11 +72,11 @@ export default function App() {
 
   const filteredDonors = useMemo(() => {
     return donors.filter(donor => {
-      const matchesSearch = donor.name?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesDistrict = !filterDistrict || donor.district === filterDistrict;
       const matchesType = filterBloodType === "All" || donor.bloodType === filterBloodType;
-      return matchesSearch && matchesType;
+      return matchesDistrict && matchesType;
     });
-  }, [donors, searchTerm, filterBloodType]);
+  }, [donors, filterDistrict, filterBloodType]);
 
   const canSubmit = useMemo(() => {
     return (
@@ -171,6 +170,22 @@ export default function App() {
     } catch (e) {
       setError(e?.response?.data?.message || "Failed to delete donor.");
       setTimeout(() => setError(""), 3000);
+    }
+  }
+
+  async function handleToggleAdmin() {
+    if (!adminMode) {
+      const password = prompt("Enter Admin Password:");
+      if (password === "admin123") {
+        setAdminMode(true);
+        setSuccess("Access Granted. Admin Mode Activated.");
+        setTimeout(() => setSuccess(""), 3000);
+      } else if (password !== null) {
+        setError("Access Denied. Incorrect Password.");
+        setTimeout(() => setError(""), 3000);
+      }
+    } else {
+      setAdminMode(false);
     }
   }
 
@@ -345,14 +360,16 @@ export default function App() {
 
           <div className="search-container">
             <div className="search-input-group">
-              <Search className="search-icon" size={18} />
-              <input 
-                type="text" 
-                className="search-input" 
-                placeholder="Search donors by name..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+              <MapPin className="search-icon" size={18} />
+              <select 
+                className="filter-select" 
+                style={{ width: '100%', border: 'none', background: 'transparent' }}
+                value={filterDistrict}
+                onChange={(e) => setFilterDistrict(e.target.value)}
+              >
+                <option value="">Filter District</option>
+                {DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
             </div>
             <select 
               className="filter-select"
@@ -365,7 +382,7 @@ export default function App() {
             
             <div 
               className={`admin-toggle ${adminMode ? 'active' : ''}`}
-              onClick={() => setAdminMode(!adminMode)}
+              onClick={handleToggleAdmin}
             >
               <Shield size={16} color={adminMode ? "var(--primary)" : "var(--text-dim)"} />
               <span style={{ fontSize: '0.875rem', fontWeight: 600, color: adminMode ? 'var(--primary)' : 'var(--text-muted)' }}>
@@ -391,9 +408,9 @@ export default function App() {
               </div>
             ) : filteredDonors.length === 0 ? (
               <div className="empty-state">
-                <Search size={48} className="icon-dim" />
-                <p>No donors found matching "{searchTerm}" {filterBloodType !== "All" ? `with blood type ${filterBloodType}` : ""}.</p>
-                <button className="btn-link" onClick={() => { setSearchTerm(""); setFilterBloodType("All"); }}>
+                <MapPin size={48} className="icon-dim" />
+                <p>No donors found in "{filterDistrict || "the selected district"}" {filterBloodType !== "All" ? `with blood type ${filterBloodType}` : ""}.</p>
+                <button className="btn-link" onClick={() => { setFilterDistrict(""); setFilterBloodType("All"); }}>
                   Clear all filters
                 </button>
               </div>
