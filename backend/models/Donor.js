@@ -5,11 +5,7 @@ const donorSchema = new mongoose.Schema({
     bloodType: { type: String, required: true },
     address: { type: String, required: true },
     telephone: { type: String, required: true }, 
-    location: {
-        type: { type: String, default: 'Point' },
-        coordinates: { type: [Number], required: true }
-    }
+    district: { type: String, required: true }
 });
 
-donorSchema.index({ location: '2dsphere' });
 module.exports = mongoose.model('Donor', donorSchema);

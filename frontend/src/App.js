@@ -19,6 +19,13 @@ import "./App.css";
 
 const API_BASE_URL = "http://localhost:5000";
 const BLOOD_TYPES = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
+const DISTRICTS = [
+  "Ampara", "Anuradhapura", "Badulla", "Batticaloa", "Colombo", 
+  "Galle", "Gampaha", "Hambantota", "Jaffna", "Kalutara", 
+  "Kandy", "Kegalle", "Kilinochchi", "Kurunegala", "Mannar", 
+  "Matale", "Matara", "Moneragala", "Mullaitivu", "Nuwara Eliya", 
+  "Polonnaruwa", "Puttalam", "Ratnapura", "Trincomalee", "Vavuniya"
+];
 
 
 
@@ -34,8 +41,7 @@ export default function App() {
     bloodType: "",
     address: "",
     telephone: "",
-    latitude: "",
-    longitude: "",
+    district: "",
   });
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -58,7 +64,7 @@ export default function App() {
       total: totalDonors,
       rarest: rarestType,
       recent: donors.slice(0, 5).length,
-      locations: new Set(donors.map(d => d.address ? d.address.split(',').pop().trim() : "Unknown")).size
+      locations: new Set(donors.map(d => d.district || "Unknown")).size
     };
   }, [donors]);
 
@@ -71,15 +77,12 @@ export default function App() {
   }, [donors, searchTerm, filterBloodType]);
 
   const canSubmit = useMemo(() => {
-    const lat = Number(form.latitude);
-    const lng = Number(form.longitude);
     return (
       form.name.trim() &&
       form.bloodType &&
       form.address.trim() &&
       form.telephone.trim() &&
-      Number.isFinite(lat) &&
-      Number.isFinite(lng)
+      form.district
     );
   }, [form]);
 
@@ -89,7 +92,6 @@ export default function App() {
 
   const isFieldInvalid = (field) => {
     if (!touched[field]) return false;
-    if (field === 'latitude' || field === 'longitude') return !Number.isFinite(Number(form[field]));
     return !form[field]?.trim();
   };
 
@@ -120,18 +122,12 @@ export default function App() {
     setError("");
     setSuccess("");
 
-    const latitude = Number(form.latitude);
-    const longitude = Number(form.longitude);
-
     const payload = {
       name: form.name.trim(),
       bloodType: form.bloodType,
       address: form.address.trim(),
       telephone: form.telephone.trim(),
-      location: {
-        type: "Point",
-        coordinates: [longitude, latitude],
-      },
+      district: form.district
     };
 
     try {
@@ -144,8 +140,7 @@ export default function App() {
         bloodType: "",
         address: "",
         telephone: "",
-        latitude: "",
-        longitude: "",
+        district: "",
       });
       setTouched({});
       setTimeout(() => setSuccess(""), 5000);
@@ -260,26 +255,19 @@ export default function App() {
                 ></textarea>
               </div>
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label className="form-label">Latitude</label>
-                  <input 
-                    className={`form-input ${isFieldInvalid('latitude') ? 'border-error' : ''}`} 
-                    placeholder="6.9271"
-                    value={form.latitude}
-                    onChange={(e) => setForm({...form, latitude: e.target.value})}
-                    onBlur={() => handleBlur('latitude')}
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Longitude</label>
-                  <input 
-                    className={`form-input ${isFieldInvalid('longitude') ? 'border-error' : ''}`} 
-                    placeholder="79.8612"
-                    value={form.longitude}
-                    onChange={(e) => setForm({...form, longitude: e.target.value})}
-                    onBlur={() => handleBlur('longitude')}
-                  />
+              <div className="form-group">
+                <label className="form-label">District</label>
+                <div className="input-wrapper">
+                  <MapPin className="input-icon" size={18} />
+                  <select 
+                    className={`form-input ${isFieldInvalid('district') ? 'border-error' : ''}`}
+                    value={form.district}
+                    onChange={(e) => setForm({...form, district: e.target.value})}
+                    onBlur={() => handleBlur('district')}
+                  >
+                    <option value="">Select District</option>
+                    {DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
+                  </select>
                 </div>
               </div>
 
@@ -389,7 +377,7 @@ export default function App() {
                     <th>Type</th>
                     <th>Contact</th>
                     <th>Location</th>
-                    <th>Coordinates</th>
+                    <th>District</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -422,9 +410,7 @@ export default function App() {
                         <td className="text-muted">{donor.address}</td>
                         <td>
                           <div className="coord-tag">
-                            {donor.location && donor.location.coordinates ? (
-                              `Lat: ${donor.location.coordinates[1]?.toFixed(4)}, Lng: ${donor.location.coordinates[0]?.toFixed(4)}`
-                            ) : "N/A"}
+                            {donor.district || "N/A"}
                           </div>
                         </td>
                       </motion.tr>
