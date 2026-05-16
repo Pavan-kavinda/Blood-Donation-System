@@ -128,10 +128,28 @@ export default function App() {
 
 
   async function handleEditClick(donor) {
+    // If adminMode is active, bypass identity verification
+    if (adminMode) {
+      setIsEditing(true);
+      setEditDonorId(donor._id);
+      setForm({
+        name: donor.name,
+        bloodType: donor.bloodType,
+        address: donor.address,
+        telephone: donor.telephone,
+        district: donor.district,
+        idNumber: donor.idNumber
+      });
+      setTouched({});
+      alert("Admin Access: Edit mode activated.");
+      document.getElementById('register').scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
+
+    // Normal user verification
     const idCheck = prompt("Enter your Registered National ID (NIC) Number to verify identity:");
     if (!idCheck) return; // user cancelled/empty
 
-    // Safely convert both fields to String, remove any leading/trailing spaces, and compare
     const savedID = String(donor.idNumber || "").trim();
     const enteredID = String(idCheck).trim();
     
