@@ -28,10 +28,10 @@ app.use(
 app.options(/.*/, cors());
 
 const donorRoutes = require('./routes/donorRoutes');
-app.use('/api/donors',donorRoutes);
+app.use('/api/donors', donorRoutes);
 
 mongoose.connect(process.env.MONGO_URI)
-.then(()=> console.log("MongoDB connected successfully! "))
-.catch(err => console.log("DB Connection Error: ❌ ",err));
+  .then(() => console.log("MongoDB connected successfully! "))
+  .catch(err => console.log("DB Connection Error: ❌ ", err));
 
-app.listen(5000,()=> console.log("Server Running on 5000 "));
+app.listen(5000, () => console.log("Server Running on 5000 "));

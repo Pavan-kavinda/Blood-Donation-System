@@ -211,7 +211,7 @@ export default function App() {
         });
         setSuccess("Donor details updated successfully!");
       } else {
-        await axios.post(`${API_BASE_URL}/api/donors/register`, payload, {
+        await axios.post(`${API_BASE_URL}/api/donors/`, payload, {
           headers: { "Content-Type": "application/json" },
         });
         setSuccess("Donor registered successfully! Thank you for your contribution.");
