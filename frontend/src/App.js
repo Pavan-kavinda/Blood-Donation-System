@@ -490,7 +490,7 @@ export default function App() {
               <input 
                 type="text"
                 className="filter-select"
-                style={{ width: '100%', border: 'none', background: 'transparent', outline: 'none' }}
+                style={{ width: '100%', paddingLeft: '42px' }}
                 placeholder="Search Donor Name"
                 value={filterName}
                 onChange={(e) => setFilterName(e.target.value)}
@@ -500,7 +500,7 @@ export default function App() {
               <MapPin className="search-icon" size={18} />
               <select 
                 className="filter-select" 
-                style={{ width: '100%', border: 'none', background: 'transparent', outline: 'none' }}
+                style={{ width: '100%', paddingLeft: '42px' }}
                 value={filterDistrict}
                 onChange={(e) => setFilterDistrict(e.target.value)}
               >
