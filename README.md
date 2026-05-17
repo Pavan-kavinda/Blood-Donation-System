@@ -30,23 +30,35 @@ Prerequisites: Ensure you have Node.js installed on your machine.
 
 ### 1. Configure the Backend
 Navigate to the server/backend directory:
+```bash
 cd backend
+```
 
 Install the backend dependencies:
+```bash
 npm install
+```
 
 Start the backend server:
+```bash
 node server.js
+```
 
 ### 2. Configure the Frontend
 Open a new terminal tab/window and navigate to the client/frontend directory:
+```bash
 cd frontend
+```
 
 Install the frontend dependencies:
+```bash
 npm install
+```
 
 Start the React development application:
+```bash
 npm start
+```
 
 ---
 
@@ -54,3 +66,14 @@ npm start
 
 * **Admin Mode Password:** admin123
 * **Sample NIC for Self-Editing Test:** 200009200458
+
+---
+
+## ⚙️ CRUD Operations Performed
+
+- **C**reate 
+- **R**ead
+- **U**pdate
+- **D**elete
+
+![Delete Operation](Delete.png) ![GET Operation](GET.png) ![POST Operation](post.png) ![PUT Operation](PUT(update).png)
