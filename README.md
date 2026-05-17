@@ -36,7 +36,7 @@ Install the backend dependencies:
 npm install
 
 Start the backend server:
-npm start
+node server.js
 
 ### 2. Configure the Frontend
 Open a new terminal tab/window and navigate to the client/frontend directory:
