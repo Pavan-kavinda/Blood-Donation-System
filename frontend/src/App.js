@@ -17,7 +17,8 @@ import {
   Trash2,
   Edit2,
   X,
-  Fingerprint
+  Fingerprint,
+  Home
 } from "lucide-react";
 import "./App.css";
 
@@ -271,6 +272,12 @@ export default function App() {
     }
   }
 
+  function handleResetFilters() {
+    setFilterName("");
+    setFilterDistrict("");
+    setFilterBloodType("All");
+  }
+
   return (
     <div className="app-container">
       <nav className="navbar">
@@ -460,9 +467,20 @@ export default function App() {
               <h2 className="card-title">Donor Directory</h2>
               <p className="card-subtitle">Active donors in your network</p>
             </div>
-            <div className="badge-outline">
-              <Database size={14} />
-              {filteredDonors.length} {filteredDonors.length === donors.length ? "Total" : "Found"}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <button 
+                className="btn-reset"
+                onClick={handleResetFilters}
+                title="Clear all filters"
+                style={{ padding: '6px 14px', fontSize: '0.875rem' }}
+              >
+                <Home size={16} />
+                Home View
+              </button>
+              <div className="badge-outline">
+                <Database size={14} />
+                {filteredDonors.length} {filteredDonors.length === donors.length ? "Total" : "Found"}
+              </div>
             </div>
           </div>
 
