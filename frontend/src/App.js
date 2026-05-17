@@ -54,6 +54,7 @@ export default function App() {
 
   const [filterDistrict, setFilterDistrict] = useState("");
   const [filterBloodType, setFilterBloodType] = useState("All");
+  const [filterName, setFilterName] = useState("");
   const [touched, setTouched] = useState({});
 
   const stats = useMemo(() => {
@@ -78,11 +79,12 @@ export default function App() {
 
   const filteredDonors = useMemo(() => {
     return donors.filter(donor => {
+      const matchesName = donor.name.toLowerCase().includes(filterName.toLowerCase());
       const matchesDistrict = !filterDistrict || donor.district === filterDistrict;
       const matchesType = filterBloodType === "All" || donor.bloodType === filterBloodType;
-      return matchesDistrict && matchesType;
+      return matchesName && matchesDistrict && matchesType;
     });
-  }, [donors, filterDistrict, filterBloodType]);
+  }, [donors, filterName, filterDistrict, filterBloodType]);
 
   const canSubmit = useMemo(() => {
     return (
@@ -466,10 +468,21 @@ export default function App() {
 
           <div className="search-container">
             <div className="search-input-group">
+              <User className="search-icon" size={18} />
+              <input 
+                type="text"
+                className="filter-select"
+                style={{ width: '100%', border: 'none', background: 'transparent', outline: 'none' }}
+                placeholder="Search Donor Name"
+                value={filterName}
+                onChange={(e) => setFilterName(e.target.value)}
+              />
+            </div>
+            <div className="search-input-group">
               <MapPin className="search-icon" size={18} />
               <select 
                 className="filter-select" 
-                style={{ width: '100%', border: 'none', background: 'transparent' }}
+                style={{ width: '100%', border: 'none', background: 'transparent', outline: 'none' }}
                 value={filterDistrict}
                 onChange={(e) => setFilterDistrict(e.target.value)}
               >
@@ -482,7 +495,7 @@ export default function App() {
               value={filterBloodType}
               onChange={(e) => setFilterBloodType(e.target.value)}
             >
-              <option value="All">All Blood Types</option>
+              <option value="All">Filter Blood Group</option>
               {BLOOD_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
             </select>
             
@@ -515,8 +528,8 @@ export default function App() {
             ) : filteredDonors.length === 0 ? (
               <div className="empty-state">
                 <MapPin size={48} className="icon-dim" />
-                <p>No donors found in "{filterDistrict || "the selected district"}" {filterBloodType !== "All" ? `with blood type ${filterBloodType}` : ""}.</p>
-                <button className="btn-link" onClick={() => { setFilterDistrict(""); setFilterBloodType("All"); }}>
+                <p>No donors found matching your search criteria.</p>
+                <button className="btn-link" onClick={() => { setFilterName(""); setFilterDistrict(""); setFilterBloodType("All"); }}>
                   Clear all filters
                 </button>
               </div>
